@@ -1,91 +1,145 @@
-1) START
-  
-2) DECLARE
-   int playerX, playerY, timeLimit, sweepCooldown, correctAnswer, trapPositionX, trapPositionY, sweepDuration, fakeDoorPositionX, fakeDoorPositionY, doorPositionX, doorPositionY;
-   bool doorReached, trapDetected, sweepActive;
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <cstdlib>
+using namespace std;
 
-3) READ
-   playerX = 0;
-   playerY = 0;
-   timeLimit = 300;      
-   sweepCooldown = 12;   
-   sweepActive = false;               
-   doorReached = false;
-   trapDetected = false;
-   trapPositionX[] = {12, 45, 34, 67, 86, 43};
-   fakeDoorPositionX[] = {62, 90};
-   doorPositionX = 51;
-   trapPositionY[] = {12, 45, 34, 67, 86, 43};
-   fakeDoorPositionY[] = {62, 90};
-   doorPositionY = 51;
+const char wall = '#';
+const char lantai = '.';
+const char player = 'P';
+const char fogofwar = ' '; // Ni tak sure tbd
+const int normalView = 3;
 
-4) LOOP BODY
-   while (timeLimit > 0 && !doorReached) 
-   {
-       if ((playerX == trapPositionX) &&  (playerY == trapPositionY))
-       {
-           timeLimit -= 10;     
-           trapDetected = true;
-           cout << "-10 seconds";
-       }
+void deleteInput();
+void mainGame(const vector<vector<char>>&map, int pX, int pY, int radius);
 
-       // Check if player uses sweeper and cooldown is 0
-       if (userInput == 'S' && sweepCooldown == 0) 
-       {
-           sweepActive = !sweepActive; // Toggle sweeper state
-           if (sweepActive) 
-           {
-               sweepDuration = 2;                
-               sweepCooldown = 12;
-               cout << "Sweeper activated\n";
-           } 
-           else 
-           {
-               cout << "Sweeper is on cooldown\n";
-           }
-       }
 
-       if (userInput == 'W') { playerY++; }
-       else if (userInput == 'A') { playerX--; }
-       else if (userInput == 'S') { playerY--; }
-       else if (userInput == 'D') { playerX++; }
-   
-       if ((playerX == (doorPositionX || fakeDoorPositionX)) &&  (playerY == (doorPositionY || fakeDoorPositionY)))     {
-           doorReached = true;
-       }
-       if (sweepCooldown > 0) 
-       {
-           sweepCooldown--;
-       }
-   }
+int main(){
+    vector<vector<char>> map = {
+        {'#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'},
+        {'#','P','.','#','.','.','.','.','.','.','.','.','.','.','.','#'},
+        {'#','.','.','#','.','#','#','#','#','.','#','#','#','.','.','#'},
+        {'#','#','.','#','.','.','.','.','#','.','.','.','#','.','#','#'},
+        {'#','.','.','.','.','#','#','.','#','#','#','.','#','.','.','#'},
+        {'#','.','#','#','#','#','.','.','.','.','.','.','#','.','.','#'},
+        {'#','.','.','.','.','.','.','#','#','#','#','.','#','#','.','#'},
+        {'#','#','#','#','.','#','.','.','.','.','#','.','.','.','.','#'},
+        {'#','.','.','.','.','#','#','#','#','.','#','.','#','#','#','#'},
+        {'#','.','#','.','.','.','.','.','#','.','#','.','.','.','.','#'},
+        {'#','.','#','#','#','.','#','.','#','.','#','#','#','.','.','#'},
+        {'#','.','.','.','#','.','#','.','.','.','.','.','.','.','D','#'},
+        {'#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'}
+    };
+    int mapHeight = map.size();
+    int mapWidth;
+    if (mapHeight > 0) {
+        mapWidth = map[0].size();
+    } else {
+        mapWidth = 0;
+    }
 
-5) CONDITIONAL STATEMENT
-   if (doorReached) 
-   {
-       cout << "The question is 98 x 32 whats the answer?\n";
-       correctAnswer = 3136;
-       int playerAnswer;
-       cin >> playerAnswer;
+    int playerX = 1;
+    int playerY = 1;
 
-       if (playerAnswer == correctAnswer) 
-           {
-               if ((playerX == fakeDoorPositionX) && (playerY == fakeDoorPositionY)) 
-               {
-                   cout << "Thats a fake door\n";
-                   playerX = 0;   // Reset player position
-		   playerY = 0;
-               } 
-               else 
-               {
-                   cout << "Correct! You escaped! Proceed to the next level.\n";
-               }
-           } 
-   } 
-   else 
-   {
-       cout << "Game Over.\n";
-   }
+    while(true){
+        mainGame(map,playerX,playerY,normalView);
 
-6) STOP
-   return 0;
-   }
+        char playinput;
+        if(!(cin >> playinput)) {
+            cout << "Please input correctly." << endl;
+            break;
+        }
+        deleteInput();
+
+        int nextX = playerX;
+        int nextY = playerY;
+        bool move;
+
+        if(playinput == 'q' || playinput == 'Q') {
+            break;
+        }
+
+        if (playinput == 'w' || playinput == 'W' || playinput == 'A' || playinput == 'a' || playinput == 's' || playinput == 'S' || playinput == 'd' || playinput == 'D' ){
+            if (playinput == 'w' || playinput == 'W') { nextY--; move = true;}
+            else if (playinput == 's' || playinput == 'S') { nextY++; move = true;}
+            else if (playinput == 'a' || playinput == 'A') { nextX--; move = true;}
+            else if (playinput == 'd' || playinput == 'D') { nextX++; move = true;}
+        }
+
+        if(move){
+            if(nextY >= 0 && nextY < mapHeight && nextX >= 0 && nextX<mapWidth && map[nextY][nextX] != wall){
+                playerX = nextX;
+                playerY = nextY;
+
+                //Ayra (door + key)
+                //Ezryn (trap)
+                //Aasim (Timer)
+
+
+            } else {
+                cout << "Cannot move there." << endl;
+            }
+
+            //Ezryn (sweeper)
+
+        }
+
+        //Aasim (Game over/Win)
+    }
+
+    cout << "\nGame Over!" << endl;
+    return 0;
+}
+
+void deleteInput() {
+    char huruf;
+    while (cin.get(huruf) && huruf != '\n');
+}
+
+void mainGame(const vector<vector<char>>& map, int pX, int pY, int radius)
+{
+    system("cls"); 
+    int mapHeight = map.size();
+    int mapWidth = 0;
+    if (mapHeight > 0) {
+        mapWidth = map[0].size();
+    }
+
+    cout << "Position: (" << pX << "," << pY << ")" << endl;
+
+    cout << "+";
+    for (int i = 0; i < mapWidth; ++i) {
+        cout << "-"; 
+    }
+    cout << "+" << endl; 
+
+    for (int y = 0; y < mapHeight; ++y) {
+        cout << "|"; 
+        for (int x = 0; x < mapWidth; ++x) {
+            int distance = abs(pX - x) + abs(pY - y);
+
+            if (distance <= radius) {
+                if (x == pX && y == pY) {
+                    cout << player; 
+                }
+                // Sini display door/key/traps (ezryn,ayra)
+                else {
+                    cout << map[y][x];
+                    //sweeper + revealed traps kt sini kot (ezryn)
+                }
+            } else {
+                cout << fogofwar; 
+            }
+        }
+        cout << "|" << endl; 
+    }
+
+    cout << "+"; 
+    for (int i = 0; i < mapWidth; ++i) {
+        cout << "-";
+    }
+    cout << "+" << endl; 
+
+    //sweeper aku buat ikut ah nk tukar ke x (ezryn)
+    cout << "Move (w/a/s/d) | Sweeper (e) | Quit (q): ";
+}
