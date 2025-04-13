@@ -92,7 +92,7 @@ int main(){
                 playerX = nextX;
                 playerY = nextY;
 
-                // --- Ayra (door + key) ---
+                // Door + key (Ayra)
                 // Check if player position sama dgn key so key = true
                 // Check position player dgn door kalau key = false lock kalau true boleh bukak
                 // Kalau door boleh bukak prompt quiz
