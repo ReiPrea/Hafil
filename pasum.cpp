@@ -56,10 +56,7 @@ int main(){
         mainGame(map,playerX,playerY,normalView);
 
         char playinput;
-        if(!(cin >> playinput)) {
-            cout << "Please input correctly." << endl;
-            break;
-        }
+        cin >> playinput;
         deleteInput();
 
         int nextX = playerX;
