@@ -3,6 +3,19 @@
 #include <cmath>
 #include <cstdlib>
 using namespace std;
+#ifdef _WIN32
+    #include <conio.h>
+    #define GET_CHAR _getch()
+#else
+    #define GET_CHAR getCharInput()
+    char getCharInput() {
+        char ch;
+        cin >> ch;
+        return ch;
+    }
+#endif
+
+
 //letak const char revealed trap ngan symbol kt sini (ezryn)
 const char wall = '#';
 const char lantai = '.';
@@ -51,13 +64,13 @@ int main(){
     // Variable number of turns letak kt sini (Aasim)
     // Status pun sama 
 
-    while(true){
+    while(!gameOver){
         // Ni mungkin tempat korg letak function
         mainGame(map,playerX,playerY,normalView);
-
         char playinput;
-        cin >> playinput;
-        deleteInput();
+        playinput = GET_CHAR;
+        
+        //deleteInput();
 
         int nextX = playerX;
         int nextY = playerY;
