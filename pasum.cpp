@@ -15,35 +15,29 @@ using namespace std;
     }
 #endif
 
-
-//letak const char revealed trap ngan symbol kt sini (ezryn)
 const char wall = '#';
 const char lantai = '.';
 const char player = 'P';
 const char fogofwar = ' ';
+const char trap = 'T';
+const char keySym = 'K';
+const char doorSym = 'D';
 const int normalView = 3;
-
+const int maxPenalty = 10;
 
 void deleteInput();
-void mainGame(const vector<vector<char>>&map, int pX, int pY, int radius);
+void mainGame(const vector<vector<char>>&map, int pX, int pY, int radius, bool hasKey, int trapPenalty, pair<int, int> keyPos, pair<int, int> doorPos, vector<pair<int, int>> traps);
 void clearScreen();
 
 int main(){
-    // Initialiaze door + key punya position + variable kt sini (Ayra)
-
-    // Initialiaze trap punya position + variable kt sini (ezryn)
-    
-    // Initialiaze timer + game punya status + variable kt sini (Aasim)
-    
-
     vector<vector<char>> map = {
         {'#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'},
         {'#','P','.','#','.','.','.','.','.','.','.','.','.','.','.','#'},
         {'#','.','.','#','.','#','#','#','#','.','#','#','#','.','.','#'},
-        {'#','#','.','#','.','.','.','.','#','.','.','.','#','.','#','#'},
+        {'#','#','K','#','.','.','.','T','#','.','.','.','#','.','#','#'},
         {'#','.','.','.','.','#','#','.','#','#','#','.','#','.','.','#'},
         {'#','.','#','#','#','#','.','.','.','.','.','.','#','.','.','#'},
-        {'#','.','.','.','.','.','.','#','#','#','#','.','#','#','.','#'},
+        {'#','.','.','.','.','.','.','#','#','T','#','.','#','#','.','#'},
         {'#','#','#','#','.','#','.','.','.','.','#','.','.','.','.','#'},
         {'#','.','.','.','.','#','#','#','#','.','#','.','#','#','#','#'},
         {'#','.','#','.','.','.','.','.','#','.','#','.','.','.','.','#'},
@@ -51,91 +45,91 @@ int main(){
         {'#','.','.','.','#','.','#','.','.','.','.','.','.','.','D','#'},
         {'#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'}
     };
+
     int mapHeight = map.size();
-    int mapWidth = 0;
-    if (mapHeight > 0) {
-        mapWidth = map[0].size();
-    }
+    int mapWidth = (mapHeight > 0) ? map[0].size() : 0;
 
     int playerX = 1;
     int playerY = 1;
 
+    bool hasKey = false;
+    int trapPenalty = 0;
+    pair<int, int> keyPos = {2, 3};
+    pair<int, int> doorPos = {14, 11};
+    vector<pair<int, int>> traps = {{4, 4}, {3, 7}, {6, 9}};
+
     bool gameOver = false;
-    // Variable number of turns letak kt sini (Aasim)
-    // Status pun sama 
 
     while(!gameOver){
-        // Ni mungkin tempat korg letak function
-        mainGame(map,playerX,playerY,normalView);
-        char playinput;
-        playinput = GET_CHAR;
-        
-        //deleteInput();
+        if (trapPenalty >= maxPenalty) {
+            cout << "\nYou ran out of time due to trap penalties! Game Over.\n";
+            break;
+        }
+
+        mainGame(map, playerX, playerY, normalView, hasKey, trapPenalty, keyPos, doorPos, traps);
+        char playinput = GET_CHAR;
 
         int nextX = playerX;
         int nextY = playerY;
-        bool move = false; 
+        bool move = false;
 
         if(playinput == 'q' || playinput == 'Q') {
             break;
         }
-
-        // // Sweeper punya button apa nk guna on kt sini (e) (Ezryn)
-        // Kena ada status sweeper active, sweeper berapa turn tinggal, berapa lama sweeper
-        if (playinput == 'e' || playinput == 'E') {
-             // Sweeper punya button apa nk guna on kt sini (Ezryn)
-             move = false;
+        else if (playinput == 'e' || playinput == 'E') {
+            move = false;
         }
-        else if (playinput == 'w' || playinput == 'W' || playinput == 'a' || playinput == 'A' || playinput == 's' || playinput == 'S' || playinput == 'd' || playinput == 'D' ){
-            if (playinput == 'w' || playinput == 'W') { nextY--; move = true;}
-            else if (playinput == 's' || playinput == 'S') { nextY++; move = true;}
-            else if (playinput == 'a' || playinput == 'A') { nextX--; move = true;}
-            else if (playinput == 'd' || playinput == 'D') { nextX++; move = true;}
-        } else {
-             // Set status kalau salah input (Aasim)
-             move = false;
-        }
-
+        else if (playinput == 'w' || playinput == 'W') { nextY--; move = true; }
+        else if (playinput == 's' || playinput == 'S') { nextY++; move = true; }
+        else if (playinput == 'a' || playinput == 'A') { nextX--; move = true; }
+        else if (playinput == 'd' || playinput == 'D') { nextX++; move = true; }
 
         if(move){
             if(nextY >= 0 && nextY < mapHeight && nextX >= 0 && nextX < mapWidth && map[nextY][nextX] != wall){
+
+                // Door check
+                if (make_pair(nextX, nextY) == doorPos) {
+                    if (hasKey) {
+                        cout << "\nYou unlocked the door and escaped! You win!\n";
+                        break;
+                    } else {
+                        cout << "\nThe door is locked. You need a key.\n";
+                        continue;
+                    }
+                }
+
                 playerX = nextX;
                 playerY = nextY;
 
-                // Door + key (Ayra)
-                // Check if player position sama dgn key so key = true
-                // Check position player dgn door kalau key = false lock kalau true boleh bukak
-                // Kalau door boleh bukak prompt quiz
+                // Key check
+                if (make_pair(playerX, playerY) == keyPos) {
+                    hasKey = true;
+                    cout << "\nYou picked up the key!\n";
+                }
 
-                // Trap (Ezryn)
-                // Check if position player sama dgn trap and turunkan masa kalau sama
-
-                // Timer (Aasim)
-                /* 
-                Timer (number of turns turun/move) kalau boleh buat in seconds
-                timer without library lain buat la kalau x just ikut turn je
-                */ 
-
+                // Trap check
+                for (auto& trapLoc : traps) {
+                    if (make_pair(playerX, playerY) == trapLoc) {
+                        trapPenalty += 2;
+                        cout << "\n===========================\n";
+                        cout << "You stepped on a trap door!\n";
+                        cout << "Penalty +2 turns and restart!\n";
+                        cout << "===========================\n";
+                        playerX = 1;
+                        playerY = 1;
+                        break;
+                    }
+                }
 
             } else {
-                cout << "Cannot move there." << endl;
+                cout << "\nCannot move there.\n";
             }
-
-             // Sweeper (Ezryn)
-             // Sweeper duration dgn reveal (??)
-
         }
-
-        //(Aasim) (Game over/Win)
-        // Check for Win Condition (depends if Ayra set wincon door or not) Kalau x set xyah buat 
-        // Check timer kalau timer 0 break;
-
-    } 
+    }
 
     cout << "\nGame Over!" << endl;
     return 0;
 }
-
 
 void deleteInput() {
     char huruf;
@@ -150,56 +144,53 @@ void clearScreen() {
 #endif
 }
 
-void mainGame(const vector<vector<char>>& map, int pX, int pY, int radius)
+void mainGame(const vector<vector<char>>& map, int pX, int pY, int radius, bool hasKey, int trapPenalty, pair<int, int> keyPos, pair<int, int> doorPos, vector<pair<int, int>> traps)
 {
     clearScreen();
     int mapHeight = map.size();
-    int mapWidth = 0;
-    if (mapHeight > 0) {
-        mapWidth = map[0].size();
-    }
+    int mapWidth = (mapHeight > 0) ? map[0].size() : 0;
 
-    // Status (key/time left) (Aasim)
-    cout << "Position: (" << pX << "," << pY << ")" << endl; // Basic info
+    cout << "Position: (" << pX << "," << pY << ")\n";
+    cout << "Key: " << (hasKey ? "Yes" : "No") << " | Trap Penalty: " << trapPenalty << " / " << maxPenalty << "\n";
+    cout << "Key Location: (" << keyPos.first << "," << keyPos.second << ")\n";
+    cout << "Door Location: (" << doorPos.first << "," << doorPos.second << ")\n";
 
-    //Border
     cout << "+";
     for (int i = 0; i < mapWidth; ++i) { cout << "-"; }
-    cout << "+" << endl;
+    cout << "+\n";
 
-    //Map
     for (int y = 0; y < mapHeight; ++y) {
         cout << "|";
         for (int x = 0; x < mapWidth; ++x) {
             int distance = abs(pX - x) + abs(pY - y);
-            // Radius tukar after sweeper active/not (tbd)
-            int currentRadius = radius; 
-
-            if (distance <= currentRadius) {
+            if (distance <= radius) {
                 if (x == pX && y == pY) {
                     cout << player;
-                }
-                //Ezryn & Ayra: Location key+trap
-                // Key data location + revealed/not + found/not (Ayra)
-                // Trap data on or off + location (ezryn)
-                // Sweeper status (ezryn) On or off
-            
-                else {
-                    cout << map[y][x]; 
+                } else if (make_pair(x, y) == keyPos) {
+                    cout << keySym;
+                } else if (make_pair(x, y) == doorPos) {
+                    cout << doorSym;
+                } else {
+                    bool isTrap = false;
+                    for (auto& trapLoc : traps) {
+                        if (trapLoc.first == x && trapLoc.second == y) {
+                            cout << trap;
+                            isTrap = true;
+                            break;
+                        }
+                    }
+                    if (!isTrap) cout << map[y][x];
                 }
             } else {
                 cout << fogofwar;
             }
         }
-        cout << "|" << endl;
+        cout << "|\n";
     }
 
     cout << "+";
     for (int i = 0; i < mapWidth; ++i) { cout << "-"; }
-    cout << "+" << endl;
-
-    //sini print status (Aasim)
-
+    cout << "+\n";
 
     cout << "Move (w/a/s/d) | Sweeper (e) | Quit (q): ";
 }
