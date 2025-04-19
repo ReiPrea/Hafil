@@ -26,23 +26,95 @@ const int normalView = 3;
 const int maxPenalty = 10;
 
 void deleteInput();
-void mainGame(const vector<vector<char>>&map, int pX, int pY, int radius, bool hasKey, int trapPenalty, pair<int, int> keyPos, pair<int, int> doorPos, vector<pair<int, int>> traps);
+void mainGame(const vector<vector<char>>&map, int pX, int pY, int radius, bool hasKey, int trapPenalty, int turnsLeft, pair<int, int> keyPos, pair<int, int> doorPos, vector<pair<int, int>> traps);
 void clearScreen();
 
+// Quiz function
+bool selectQuiz(int turnsLeft) {
+    //Quiz decided by the amount of turns left
+    int questionNum = turnsLeft % 5;
+    
+    cout << "\nQUIZ CHALLENGE!\n";
+    
+    switch(questionNum) {
+        case 0:
+            cout << "What's 7 + 3?\n";
+            cout << "A. 9\nB. 10\nC. 11\nD. 12\n";
+            cout << "Your answer: ";
+            {
+                char answer;
+                cin >> answer;
+                return (answer == 'B' || answer == 'b');
+            }
+            
+        case 1:
+            cout << "Which planet is the 3rd from the sun?\n";
+            cout << "A. Mars\nB. Earth\nC. Venus\nD. Jupiter\n";
+            cout << "Your answer: ";
+            {
+                char answer;
+                cin >> answer;
+                return (answer == 'B' || answer == 'b');
+            }
+            
+        case 2:
+            cout << "What is the capital of France?\n";
+            cout << "A. London\nB. Berlin\nC. Paris\nD. Madrid\n";
+            cout << "Your answer: ";
+            {
+                char answer;
+                cin >> answer;
+                return (answer == 'C' || answer == 'c');
+            }
+            
+        case 3:
+            cout << "What is the derivative of f(x)=sech(x)?\n";
+            cout << "A. sinh(x)\nB. -sech(x)tanh(x)\nC. -csch(x)coth(x)\nD. cosh(x)\n";
+            cout << "Your answer: ";
+            {
+                char answer;
+                cin >> answer;
+                return (answer == 'B' || answer == 'b');
+            }
+            
+        case 4:
+            cout << "What is the largest mammal?\n";
+            cout << "A. African Elephant\nB. Blue Whale\nC. Giraffe\nD. Gorilla\n";
+            cout << "Your answer: ";
+            {
+                char answer;
+                cin >> answer;
+                return (answer == 'B' || answer == 'b');
+            }
+            
+        default:
+            cout << "What is 2 + 2?\n";
+            cout << "A. 3\nB. 4\nC. 5\nD. 6\n";
+            cout << "Your answer: ";
+            {
+                char answer;
+                cin >> answer;
+                return (answer == 'B' || answer == 'b');
+            }
+    }
+}
+
+
 int main(){
+    tryagain:
     vector<vector<char>> map = {
         {'#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'},
         {'#','P','.','#','.','.','.','.','.','.','.','.','.','.','.','#'},
         {'#','.','.','#','.','#','#','#','#','.','#','#','#','.','.','#'},
-        {'#','#','K','#','.','.','.','T','#','.','.','.','#','.','#','#'},
+        {'#','#','.','#','.','.','.','T','#','.','.','.','#','.','#','#'},
         {'#','.','.','.','.','#','#','.','#','#','#','.','#','.','.','#'},
         {'#','.','#','#','#','#','.','.','.','.','.','.','#','.','.','#'},
         {'#','.','.','.','.','.','.','#','#','T','#','.','#','#','.','#'},
         {'#','#','#','#','.','#','.','.','.','.','#','.','.','.','.','#'},
         {'#','.','.','.','.','#','#','#','#','.','#','.','#','#','#','#'},
-        {'#','.','#','.','.','.','.','.','#','.','#','.','.','.','.','#'},
+        {'#','.','#','.','.','.','.','.','#','K','#','.','.','.','.','#'},
         {'#','.','#','#','#','.','#','.','#','.','#','#','#','.','.','#'},
-        {'#','.','.','.','#','.','#','.','.','.','.','.','.','.','D','#'},
+        {'#','.','.','.','.','#','.','.','.','.','.','.','.','.','.','D','#'},
         {'#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'}
     };
 
@@ -54,19 +126,24 @@ int main(){
 
     bool hasKey = false;
     int trapPenalty = 0;
-    pair<int, int> keyPos = {2, 3};
+    int turnsLeft = 40;
+    pair<int, int> keyPos = {9, 9};
     pair<int, int> doorPos = {14, 11};
     vector<pair<int, int>> traps = {{4, 4}, {3, 7}, {6, 9}};
-
+    
     bool gameOver = false;
 
     while(!gameOver){
+        if (turnsLeft <= 0) {
+              cout << "\nTime's up! You couldn't escape in time. Game Over.\n";
+             break;
+        }
         if (trapPenalty >= maxPenalty) {
             cout << "\nYou ran out of time due to trap penalties! Game Over.\n";
             break;
         }
 
-        mainGame(map, playerX, playerY, normalView, hasKey, trapPenalty, keyPos, doorPos, traps);
+        mainGame(map, playerX, playerY, normalView, hasKey, trapPenalty, turnsLeft, keyPos, doorPos, traps);
         char playinput = GET_CHAR;
 
         int nextX = playerX;
@@ -86,12 +163,19 @@ int main(){
 
         if(move){
             if(nextY >= 0 && nextY < mapHeight && nextX >= 0 && nextX < mapWidth && map[nextY][nextX] != wall){
+                turnsLeft--;
 
                 // Door check
                 if (make_pair(nextX, nextY) == doorPos) {
                     if (hasKey) {
-                        cout << "\nYou unlocked the door and escaped! You win!\n";
-                        break;
+                        cout << "\nYou unlocked the door! Answer a quiz to escape the maze.";
+                        if (selectQuiz(turnsLeft)) {
+                            cout << "\nCorrect! You escaped the maze! You win!\n";
+                            break;
+                        } else {
+                            cout << "\nWrong answer! You need to try again.\n";
+                            continue;
+                        }
                     } else {
                         cout << "\nThe door is locked. You need a key.\n";
                         continue;
@@ -111,8 +195,10 @@ int main(){
                 for (auto& trapLoc : traps) {
                     if (make_pair(playerX, playerY) == trapLoc) {
                         trapPenalty += 2;
+                        turnsLeft -= 2; 
                         cout << "\n===========================\n";
                         cout << "You stepped on a trap door!\n";
+                        cout << "Time left = -2\n";
                         cout << "Penalty +2 turns and restart!\n";
                         cout << "===========================\n";
                         playerX = 1;
@@ -128,6 +214,14 @@ int main(){
     }
 
     cout << "\nGame Over!" << endl;
+    cout << "\n Try again? (y if yes, press any to exit): ";
+    char retry;
+    cin >> retry;
+    if (retry == 'y' || retry == 'Y') {
+        goto tryagain;
+    } else {
+        cout << "\nThanks for playing!\n";
+    }
     return 0;
 }
 
@@ -144,14 +238,14 @@ void clearScreen() {
 #endif
 }
 
-void mainGame(const vector<vector<char>>& map, int pX, int pY, int radius, bool hasKey, int trapPenalty, pair<int, int> keyPos, pair<int, int> doorPos, vector<pair<int, int>> traps)
+void mainGame(const vector<vector<char>>& map, int pX, int pY, int radius, bool hasKey, int trapPenalty,int turnsLeft, pair<int, int> keyPos, pair<int, int> doorPos, vector<pair<int, int>> traps)
 {
     clearScreen();
     int mapHeight = map.size();
     int mapWidth = (mapHeight > 0) ? map[0].size() : 0;
 
     cout << "Position: (" << pX << "," << pY << ")\n";
-    cout << "Key: " << (hasKey ? "Yes" : "No") << " | Trap Penalty: " << trapPenalty << " / " << maxPenalty << "\n";
+    cout << "Key: " << (hasKey ? "Yes" : "No") << " | Trap Penalty: " << trapPenalty << " / " << maxPenalty << " | Time left : "<< turnsLeft<<" turns\n";
     cout << "Key Location: (" << keyPos.first << "," << keyPos.second << ")\n";
     cout << "Door Location: (" << doorPos.first << "," << doorPos.second << ")\n";
 
@@ -192,5 +286,5 @@ void mainGame(const vector<vector<char>>& map, int pX, int pY, int radius, bool 
     for (int i = 0; i < mapWidth; ++i) { cout << "-"; }
     cout << "+\n";
 
-    cout << "Move (w/a/s/d) | Sweeper (e) | Quit (q): ";
+    cout << "Move (w/a/s/d) | Quit (q): ";
 }
