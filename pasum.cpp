@@ -38,8 +38,8 @@ bool selectQuiz(int turnsLeft) {
     
     switch(questionNum) {
         case 0:
-            cout << "What's 7 + 3?\n";
-            cout << "A. 9\nB. 10\nC. 11\nD. 12\n";
+            cout << "What's 7 * 3!?\n";
+            cout << "A. 21\nB. 42\nC. 49\nD. 28\n";
             cout << "Your answer: ";
             {
                 char answer;
@@ -58,8 +58,8 @@ bool selectQuiz(int turnsLeft) {
             }
             
         case 2:
-            cout << "What is the capital of France?\n";
-            cout << "A. London\nB. Berlin\nC. Paris\nD. Madrid\n";
+            cout << "What is the name of the First Prime Minister of Malaysia?\n";
+            cout << "A. Dasuk Seri Anwar Ibrahim\nB. Tun Abdullah Ahmad Badawi\nC. Tunku Abdul Rahman Putra Al-Haj\nD. Tun Hussein Onn\n";
             cout << "Your answer: ";
             {
                 char answer;
@@ -78,8 +78,8 @@ bool selectQuiz(int turnsLeft) {
             }
             
         case 4:
-            cout << "What is the largest mammal?\n";
-            cout << "A. African Elephant\nB. Blue Whale\nC. Giraffe\nD. Gorilla\n";
+            cout << "What year was Universiti Malaya established?\n";
+            cout << "A. 1909\nB. 1949\nC. 1957\nD. 1975\n";
             cout << "Your answer: ";
             {
                 char answer;
