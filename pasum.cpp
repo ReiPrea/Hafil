@@ -3,6 +3,11 @@
 #include <cmath>
 #include <cstdlib>
 using namespace std;
+/*
+Check whether the system is Windows or Linux
+If Windows, include conio.h for _getch()
+If Linux, define a function to get character input 
+*/
 #ifdef _WIN32
     #include <conio.h>
     #define GET_CHAR _getch()
@@ -25,8 +30,7 @@ const char doorSym = 'D';
 const int normalView = 3;
 const int maxPenalty = 10;
 
-void deleteInput();
-void mainGame(const vector<vector<char>>&map, int pX, int pY, int radius, bool hasKey, int trapPenalty, int turnsLeft, pair<int, int> keyPos, pair<int, int> doorPos, vector<pair<int, int>> traps);
+void mainGame(const vector<vector<char>>&map, int pX, int pY, int radius, bool hasKey, int trapPenalty, int turnsLeft, pair<int, int> keyPos, pair<int, int> doorPos, vector<pair<int, int>>* traps);
 void clearScreen();
 
 // Quiz function
@@ -102,6 +106,7 @@ bool selectQuiz(int turnsLeft) {
 
 int main(){
     tryagain:
+    // Set up the game map
     vector<vector<char>> map = {
         {'#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'},
         {'#','P','.','#','.','.','.','.','.','.','.','.','.','.','.','#'},
@@ -118,6 +123,7 @@ int main(){
         {'#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'}
     };
 
+    // Set up the game variables
     int mapHeight = map.size();
     int mapWidth = (mapHeight > 0) ? map[0].size() : 0;
 
@@ -129,14 +135,16 @@ int main(){
     int turnsLeft = 40;
     pair<int, int> keyPos = {9, 9};
     pair<int, int> doorPos = {14, 11};
-    vector<pair<int, int>> traps = {{4, 4}, {3, 7}, {6, 9}};
+
+    // Dynamically allocate memory for traps
+    vector<pair<int, int>>* traps = new vector<pair<int, int>>({{4, 4}, {3, 7}, {6, 9}});
     
     bool gameOver = false;
 
     while(!gameOver){
         if (turnsLeft <= 0) {
-              cout << "\nTime's up! You couldn't escape in time. Game Over.\n";
-             break;
+            cout << "\nTime's up! You couldn't escape in time. Game Over.\n";
+            break;
         }
         if (trapPenalty >= maxPenalty) {
             cout << "\nYou ran out of time due to trap penalties! Game Over.\n";
@@ -150,19 +158,17 @@ int main(){
         int nextY = playerY;
         bool move = false;
 
-        if(playinput == 'q' || playinput == 'Q') {
+        // Quit command
+        if (playinput == 'q' || playinput == 'Q') {
             break;
-        }
-        else if (playinput == 'e' || playinput == 'E') {
-            move = false;
-        }
-        else if (playinput == 'w' || playinput == 'W') { nextY--; move = true; }
+        } else if (playinput == 'w' || playinput == 'W') { nextY--; move = true; }
         else if (playinput == 's' || playinput == 'S') { nextY++; move = true; }
         else if (playinput == 'a' || playinput == 'A') { nextX--; move = true; }
         else if (playinput == 'd' || playinput == 'D') { nextX++; move = true; }
 
-        if(move){
-            if(nextY >= 0 && nextY < mapHeight && nextX >= 0 && nextX < mapWidth && map[nextY][nextX] != wall){
+        // Run after a move
+        if (move) {
+            if (nextY >= 0 && nextY < mapHeight && nextX >= 0 && nextX < mapWidth && map[nextY][nextX] != wall) {
                 turnsLeft--;
 
                 // Door check
@@ -192,7 +198,7 @@ int main(){
                 }
 
                 // Trap check
-                for (auto& trapLoc : traps) {
+                for (auto& trapLoc : *traps) {
                     if (make_pair(playerX, playerY) == trapLoc) {
                         trapPenalty += 2;
                         turnsLeft -= 2; 
@@ -213,23 +219,25 @@ int main(){
         }
     }
 
+    // Game over message
     cout << "\nGame Over!" << endl;
-    cout << "\n Try again? (y if yes, press any to exit): ";
+    cout << "\nTry again? (y if yes, press any to exit): ";
     char retry;
     cin >> retry;
     if (retry == 'y' || retry == 'Y') {
+        delete traps; // Free memory before restarting
         goto tryagain;
     } else {
         cout << "\nThanks for playing!\n";
     }
+
+    // Free dynamically allocated memory
+    delete traps;
+
     return 0;
 }
 
-void deleteInput() {
-    char huruf;
-    while (cin.get(huruf) && huruf != '\n');
-}
-
+// A function to clear the console screen
 void clearScreen() {
 #ifdef _WIN32
     system("cls");
@@ -237,39 +245,43 @@ void clearScreen() {
     system("clear");
 #endif
 }
-
-void mainGame(const vector<vector<char>>& map, int pX, int pY, int radius, bool hasKey, int trapPenalty,int turnsLeft, pair<int, int> keyPos, pair<int, int> doorPos, vector<pair<int, int>> traps)
+// A function to display the game map and player status
+void mainGame(const vector<vector<char>>& map, int pX, int pY, int radius, bool hasKey, int trapPenalty,int turnsLeft, pair<int, int> keyPos, pair<int, int> doorPos, vector<pair<int, int>>* traps)
 {
     clearScreen();
     int mapHeight = map.size();
     int mapWidth = (mapHeight > 0) ? map[0].size() : 0;
-
+    // Display the status bar
     cout << "Position: (" << pX << "," << pY << ")\n";
     cout << "Key: " << (hasKey ? "Yes" : "No") << " | Trap Penalty: " << trapPenalty << " / " << maxPenalty << " | Time left : "<< turnsLeft<<" turns\n";
     cout << "Key Location: (" << keyPos.first << "," << keyPos.second << ")\n";
     cout << "Door Location: (" << doorPos.first << "," << doorPos.second << ")\n";
-
+    // Display the map with fog of war
     cout << "+";
     for (int i = 0; i < mapWidth; ++i) { cout << "-"; }
     cout << "+\n";
-
-    for (int y = 0; y < mapHeight; ++y) {
-        cout << "|";
-        for (int x = 0; x < mapWidth; ++x) {
+    //
+    for (int y = 0; y < mapHeight; ++y) { // Loop through each row of the map
+        cout << "|"; // Print the left boundary of the map
+        for (int x = 0; x < mapWidth; ++x) { // Loop through each column of the map
             int distance = abs(pX - x) + abs(pY - y);
-            if (distance <= radius) {
-                if (x == pX && y == pY) {
+            if (distance <= radius) { // Check if the current cell is within the player's visibility radius
+                if (x == pX && y == pY) { 
                     cout << player;
-                } else if (make_pair(x, y) == keyPos) {
-                    cout << keySym;
-                } else if (make_pair(x, y) == doorPos) {
-                    cout << doorSym;
+                } else if (make_pair(x, y) == keyPos) { // If the current cell is the key's position
+                    cout << keySym; // Display the key symbol
+                } else if (make_pair(x, y) == doorPos) { // If the current cell is the door's position
+                    cout << doorSym; // Display the door symbol
                 } else {
                     bool isTrap = false;
-                    for (auto& trapLoc : traps) {
+                    for (auto& trapLoc : *traps) { // Loop through all trap locations
+                        /*
+                        If the current cell is a trap, Display the trap symbol
+                        use break to exit the loop after stepping on a trap
+                        */
                         if (trapLoc.first == x && trapLoc.second == y) {
                             cout << trap;
-                            isTrap = true;
+                            isTrap = true; 
                             break;
                         }
                     }
@@ -279,7 +291,7 @@ void mainGame(const vector<vector<char>>& map, int pX, int pY, int radius, bool 
                 cout << fogofwar;
             }
         }
-        cout << "|\n";
+        cout << "|\n"; // Print the right boundary of the map
     }
 
     cout << "+";
