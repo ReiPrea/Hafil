@@ -1,3 +1,7 @@
+/*
+https://raw.githubusercontent.com/ReiPrea/Hafilhazimi/refs/heads/main/pasum.cpp
+*/
+
 #include <iostream>
 #include <vector>
 #include <cmath>
