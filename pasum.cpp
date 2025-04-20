@@ -1,6 +1,6 @@
 /*
 This code can also be copied from
-https://raw.githubusercontent.com/ReiPrea/Hafilhazimi/refs/heads/main/pasum.cpp
+https://raw.githubusercontent.com/ReiPrea/Hafil/refs/heads/main/pasum.cpp
 */
 
 #include <iostream>
