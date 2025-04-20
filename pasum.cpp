@@ -6,7 +6,7 @@ using namespace std;
 /*
 Check whether the system is Windows or Linux
 If Windows, include conio.h for _getch()
-If Linux, define a function to get character input 
+If anything else, define a function to get character input 
 */
 #ifdef _WIN32
     #include <conio.h>
